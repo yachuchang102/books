@@ -3,11 +3,13 @@
 import Vue from 'vue'
 import axios from 'axios';
 import VueAxios from 'vue-axios';
-import App from './App'
-import router from './router'
+import 'bootstrap';
 
-Vue.use(VueAxios, axios);
+import App from './App';
+import router from './router';
+
 Vue.config.productionTip = false;
+Vue.use(VueAxios, axios);
 
 axios.defaults.withCredentials = true;
 
