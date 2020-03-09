@@ -1,8 +1,8 @@
 <template>
   <div>
- <div class="text-right">
+    <div class="text-right">
   <button class="btn btn-primary" @click="openModal(true)">建立新產品</button>
- </div>
+    </div>
  <table class="table mt-4">
  <thead>
  <tr>
@@ -11,7 +11,7 @@
  <th width="120">原價</th>
 <th width="120">售價</th>
 <th width="100">是否啟用</th>
-<th width="80">編輯</th>
+<th width="120">編輯</th>
  </tr>
  </thead>
  <tbody>
@@ -25,7 +25,10 @@
     <span v-else>未啟用</span>
     </td>
     <td>
-    <button class="btn btn-outline-primary btn-sm" @click="openModal(false, item)">編輯</button>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+      <button type="button" class="btn btn-outline-primary" @click="openModal(false, item)">編輯</button>
+      <button type="button" class="btn btn-outline-danger"  @click="openDeleteModal(item)">刪除</button>
+    </div>
     </td>
     </tr>
  </tbody>
@@ -128,15 +131,40 @@
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary" @click="updateProduct">確認</button>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" @click="updateProduct(item)">確認</button>
+          </div>
+        </div>
       </div>
+    </div>
+    <!--deleteModal-->
+  <div class="modal fade" id="delProductModal" tabindex="-1" role="dialog"
+      aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content border-0">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="exampleModalLabel">
+            <span>刪除產品</span>
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          是否刪除 <strong class="text-danger">{{ tempProduct.title }}</strong> 商品(刪除後將無法恢復)。
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-danger" @click="deleteProduct()"
+            >確認刪除</button>
+        </div>
     </div>
   </div>
 </div>
   </div>
 </template>
+
 <script>
 import $ from 'jquery';
 export default {
@@ -183,10 +211,29 @@ export default {
           $('#productModal').modal('hide');
           vm.getProducts();
           console.log('新增失敗');
-
         }
         });
     },
+    openDeleteModal(item){
+      this.tempProduct = Object.assign({},item);
+      $('#delProductModal').modal('show');
+        },
+    deleteProduct(){
+        const vm = this
+        const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/product/${vm.tempProduct.id}`;
+        this.$http.delete(api).then((response) => { 
+        console.log(response.data);
+        if(response.data.success){
+          $('#delProductModal').modal('hide');
+          vm.getProducts();
+        }else {
+          $('#delProductModal').modal('hide');
+          vm.getProducts();
+          console.log('刪除失敗');
+        }
+        });
+    },
+  
   },
   created() {
     this.getProducts();
