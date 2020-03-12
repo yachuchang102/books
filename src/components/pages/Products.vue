@@ -1,5 +1,6 @@
 <template>
   <div>
+    <loading :active.sync="isLoading"></loading>
     <div class="text-right">
   <button class="btn btn-primary" @click="openModal(true)">建立新產品</button>
     </div>
@@ -173,14 +174,17 @@ export default {
       products: [],
       tempProduct:{},
       isNew: false,
+      isLoading: false,
     };
   },
   methods: {
     getProducts() {
         const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/products`;
         const vm = this;
+        vm.isLoading = true;
         this.$http.get(api).then((response) => { 
         console.log(response.data);
+        vm.isLoading = false;
         vm.products = response.data.products;
         });
     },
