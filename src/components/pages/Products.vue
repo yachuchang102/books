@@ -19,8 +19,8 @@
     <tr v-for="(item, key) in products" :key="item.id">
     <td>{{item.category}}</td>
     <td>{{item.title}}</td>
-    <td class="text-right">{{item.origin_price}}</td>
-    <td class="text-right">{{item.price}}</td>
+    <td class="text-right">{{item.origin_price | currency }}</td>
+    <td class="text-right">{{item.price | currency }}</td>
     <td>
     <span v-if="item.is_enabled" class="text-success">啟用</span>
     <span v-else>未啟用</span>
@@ -34,6 +34,7 @@
     </tr>
  </tbody>
  </table>
+ <Pagination :pageData="pagination" @emitpage="getProducts"></Pagination>
  <!-- Modal -->
 <div class="modal fade" id="productModal" tabindex="-1" role="dialog"
   aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -58,7 +59,7 @@
             </div>
             <div class="form-group">
               <label for="customFile">或 上傳圖片
-                <i class="fas fa-spinner fa-spin"></i>
+                <i class="fas fa-spinner fa-spin" v-if="status.fileUploading"></i>
               </label>
               <input type="file" id="customFile" class="form-control"
                 ref="files" @change="uploadFile">
@@ -168,24 +169,34 @@
 
 <script>
 import $ from 'jquery';
+import Pagination from '../Pagination';
 export default {
+   components: { 
+        Pagination, 
+    },
   data (){
     return {
       products: [],
       tempProduct:{},
       isNew: false,
       isLoading: false,
+      status: {
+         fileUploading: false,
+      },
+      pagination: {}
     };
   },
   methods: {
-    getProducts() {
-        const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/products`;
+    getProducts(page = 1) {
+        const api = `${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/products?page=${page}`;
         const vm = this;
         vm.isLoading = true;
         this.$http.get(api).then((response) => { 
         console.log(response.data);
         vm.isLoading = false;
         vm.products = response.data.products;
+        vm.pagination = response.data.pagination;
+
         });
     },
     openModal(isNew, item){
@@ -244,14 +255,18 @@ export default {
       const formData = new FormData();
       formData.append('file-to-upload',uploadFile);
       const url =`${process.env.APIPATH}/api/${process.env.CUSTOMPATH}/admin/upload`;
+      vm.status.fileUploading = true;
       this.$http.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       }).then((response) => {
         console.log(response.data);
+        vm.status.fileUploading = false;
         if(response.data.success) {
           vm.$set(vm.tempProduct, 'imageUrl', response.data.imageUrl);
+                  } else {
+                 this.$bus.$emit('message:push', response.data.message, 'danger');
                   }
       })
     },
